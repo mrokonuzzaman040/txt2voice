@@ -14,6 +14,12 @@ export function RealTimePanel() {
   const [duration, setDuration] = useState(0);
   const startTimeRef = useRef<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Handle hydration by ensuring we only show the correct state after client mount
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     let animationId: number | null = null;
@@ -97,7 +103,7 @@ export function RealTimePanel() {
           </p>
         </div>
         <Badge className="bg-indigo-500/20 text-indigo-200">
-          {supported ? 'Live ready' : 'Not supported'}
+          {!isClient ? 'Loading...' : supported ? 'Live ready' : 'Not supported'}
         </Badge>
       </div>
 
