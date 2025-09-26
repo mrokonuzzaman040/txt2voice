@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Txt2Voice Platform
+
+Txt2Voice is a secure voice-to-text workspace built with Next.js 15, React 19, NextAuth, Prisma, and PostgreSQL. It provides both real-time browser-based capture and recorded audio transcription powered by Gemini or OpenAI, with dedicated dashboards for end users and administrators.
+
+## Features
+- **Role-based access** with NextAuth credentials authentication and Prisma adapter.
+- **Real-time transcription** via the browser Speech Recognition API with server-side persistence.
+- **Recorded audio transcription** that uploads audio files and routes them to Gemini or OpenAI.
+- **Audit-ready history** stored in PostgreSQL, exposed via secure API routes and admin views.
+- **Admin console** with usage metrics, user insights, and transcript oversight.
+- **Tailwind CSS UI** focused on clarity, dark-theme aesthetics, and accessibility.
+
+## Tech Stack
+- [Next.js 15 (App Router)](https://nextjs.org/)
+- [React 19](https://react.dev/)
+- [NextAuth.js](https://next-auth.js.org/) with Credentials provider
+- [Prisma ORM](https://www.prisma.io/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Tailwind CSS v4](https://tailwindcss.com/)
+- [OpenAI Node SDK](https://github.com/openai/openai-node) & [Google Generative AI](https://ai.google.dev/)
 
 ## Getting Started
 
-First, run the development server:
-
+### 1. Install dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure environment
+Copy the example file and update the secrets:
+```bash
+cp .env.example .env
+```
+Required variables:
+- `DATABASE_URL` – PostgreSQL connection string.
+- `NEXTAUTH_SECRET` – random 32+ character secret for JWT encryption.
+- `NEXTAUTH_URL` – base URL of the app (e.g. `http://localhost:3000`).
+- `OPENAI_API_KEY` / `OPENAI_MODEL` – optional, for OpenAI audio transcription.
+- `GEMINI_API_KEY` / `GEMINI_MODEL` – optional, for Gemini transcription.
+- `PRIMARY_TRANSCRIPTION_PROVIDER` – default provider (`openai`, `gemini`, or `local`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Optional (for seeding):
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Database & Prisma
+Generate the Prisma client and run migrations (requires PostgreSQL running):
+```bash
+npm run prisma:generate
+npm run prisma:migrate
+```
+Seed demo data (admin + sample transcripts):
+```bash
+npm run prisma:seed
+```
 
-## Learn More
+### 4. Start the development server
+```bash
+npm run dev
+```
+Visit [http://localhost:3000](http://localhost:3000) to access the marketing site, `/sign-in` for the workspace login, and `/dashboard` for the authenticated experience.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Next.js dev server |
+| `npm run build` | Build the production bundle |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run ESLint |
+| `npm run prisma:generate` | Generate Prisma client |
+| `npm run prisma:migrate` | Run interactive Prisma migrations |
+| `npm run prisma:seed` | Seed the database with demo data |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Architecture Overview
+- **App Router** pages under `src/app/` with separate routes for marketing, auth, dashboard, and admin.
+- **API routes** under `src/app/api/` handling authentication, recorded audio uploads, realtime session storage, and transcript retrieval.
+- **Prisma schema** defines users, accounts, sessions, verification tokens, and transcription records with provider metadata.
+- **Transcription providers** can be extended in `src/lib/transcription/` to add support for more engines or queues.
+- **UI components** in `src/components/` offer reusable building blocks for forms, cards, dashboards, and layout.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Security Notes
+- All authenticated routes and APIs are protected by NextAuth middleware with role-aware checks.
+- Admin routes enforce elevated permissions; non-admin users are redirected to the workspace.
+- Passwords use bcrypt hashing; update the hashing rounds or integrate external identity providers as needed.
+- Ensure HTTPS is enabled in production and rotate the `NEXTAUTH_SECRET` when deploying.
 
-## Deploy on Vercel
+## Roadmap Ideas
+- WebSocket streaming to offload realtime transcription to Gemini or OpenAI Realtime APIs.
+- Audio storage via object storage (S3, GCS) with signed URLs.
+- Multi-tenant organizations with granular permissions.
+- Automated QA workflows (summaries, topic detection) on completed transcripts.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+Crafted with ❤️ to provide a clean, secure voice-to-text experience for teams.
