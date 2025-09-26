@@ -21,6 +21,12 @@ type SpeechRecognitionLike = {
 
 export function useSpeechRecognition() {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const shouldRunRef = useRef(false);
+  const isServiceBlockedRef = useRef(false);
+  const hasAttemptedStartRef = useRef(false);
+  const retryCountRef = useRef(0);
+  const isRecordingRef = useRef(false);
+  const isStartingRef = useRef(false);
   const [transcript, setTranscript] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,8 +58,13 @@ export function useSpeechRecognition() {
     recognition.lang = 'en-US';
     recognition.continuous = true;
     recognition.interimResults = true;
-    
-    // Don't start automatically - only when explicitly requested
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+      isRecordingRef.current = true;
+      setIsStarting(false);
+      isStartingRef.current = false;
+    };
 
     recognition.onresult = (event) => {
       const lastResult = event.results[event.results.length - 1];
@@ -71,7 +82,7 @@ export function useSpeechRecognition() {
 
     recognition.onerror = (event) => {
       // Only handle errors if user has actually attempted to start
-      if (!hasAttemptedStart) {
+      if (!hasAttemptedStartRef.current) {
         console.log('Speech recognition error (ignored - not started by user):', event.error);
         return;
       }
@@ -86,15 +97,16 @@ export function useSpeechRecognition() {
       
       // Handle specific error types more gracefully
       if (event.error === 'network') {
-        if (retryCount < 2 && !isStarting) {
-          setError(`Speech service connection issue. Retrying... (${retryCount + 1}/2)`);
-          setRetryCount(prev => prev + 1);
+        if (retryCountRef.current < 2 && !isStartingRef.current) {
+          const nextAttempt = retryCountRef.current + 1;
+          setError(`Speech service connection issue. Retrying... (${nextAttempt}/2)`);
+          setRetryCount((prev) => prev + 1);
           setIsStarting(true);
-          
+
           // Retry with exponential backoff
-          const delay = Math.min(2000 * Math.pow(2, retryCount), 8000);
+          const delay = Math.min(2000 * Math.pow(2, retryCountRef.current), 8000);
           retryTimeoutRef.current = setTimeout(() => {
-            if (recognitionRef.current && !isRecording) {
+            if (recognitionRef.current && !isRecordingRef.current) {
               try {
                 recognitionRef.current.start();
               } catch (err) {
@@ -112,9 +124,13 @@ export function useSpeechRecognition() {
         } else {
           setError('Speech recognition service is blocked or unavailable. This is likely due to network restrictions, firewall settings, or browser security policies.');
           setIsServiceBlocked(true);
+          isServiceBlockedRef.current = true;
+          shouldRunRef.current = false;
         }
       } else if (event.error === 'not-allowed') {
         setError('Microphone access denied. Please allow microphone access and try again.');
+        isServiceBlockedRef.current = false;
+        shouldRunRef.current = false;
       } else if (event.error === 'no-speech') {
         setError('No speech detected. Please try speaking again.');
       } else if (event.error === 'audio-capture') {
@@ -122,6 +138,8 @@ export function useSpeechRecognition() {
       } else if (event.error === 'service-not-allowed') {
         setError('Speech recognition service not available. Please try again later.');
         setIsServiceBlocked(true);
+        isServiceBlockedRef.current = true;
+        shouldRunRef.current = false;
       } else if (event.error === 'aborted') {
         setError('Speech recognition was interrupted. Please try again.');
       } else {
@@ -134,7 +152,25 @@ export function useSpeechRecognition() {
 
     recognition.onend = () => {
       setIsRecording(false);
+      isRecordingRef.current = false;
       setIsStarting(false);
+      isStartingRef.current = false;
+
+      if (shouldRunRef.current && !isServiceBlockedRef.current) {
+        try {
+          setIsStarting(true);
+          isStartingRef.current = true;
+          setTimeout(() => {
+            if (shouldRunRef.current) {
+              recognition.start();
+            }
+          }, 250);
+        } catch (err) {
+          console.error('Failed to resume speech recognition:', err);
+          setError('Unable to resume speech recognition.');
+          shouldRunRef.current = false;
+        }
+      }
     };
 
     recognitionRef.current = recognition;
@@ -163,17 +199,25 @@ export function useSpeechRecognition() {
     setTranscript('');
     setError(null);
     setRetryCount(0);
+    retryCountRef.current = 0;
     setIsServiceBlocked(false);
+    isServiceBlockedRef.current = false;
     setIsStarting(true);
+    isStartingRef.current = true;
     setHasAttemptedStart(true); // Mark that user has attempted to start
-    
+    hasAttemptedStartRef.current = true;
+    shouldRunRef.current = true;
+
     try {
       recognitionRef.current.start();
       setIsRecording(true);
+      isRecordingRef.current = true;
     } catch (err) {
       console.error('Failed to start speech recognition:', err);
       setError('Failed to start speech recognition. Please check your browser permissions and try again.');
       setIsStarting(false);
+      isStartingRef.current = false;
+      shouldRunRef.current = false;
     }
   };
 
@@ -182,22 +226,51 @@ export function useSpeechRecognition() {
       clearTimeout(retryTimeoutRef.current);
       retryTimeoutRef.current = null;
     }
+    shouldRunRef.current = false;
     recognitionRef.current?.stop();
     setIsRecording(false);
+    isRecordingRef.current = false;
     setIsStarting(false);
+    isStartingRef.current = false;
   };
 
   const reset = () => {
     setHasAttemptedStart(false);
+    hasAttemptedStartRef.current = false;
     setError(null);
     setRetryCount(0);
+    retryCountRef.current = 0;
     setIsServiceBlocked(false);
+    isServiceBlockedRef.current = false;
     setIsStarting(false);
+    isStartingRef.current = false;
     setIsRecording(false);
+    isRecordingRef.current = false;
     setTranscript('');
+    shouldRunRef.current = false;
   };
 
   const supported = Boolean(SpeechRecognitionImpl);
+
+  useEffect(() => {
+    isServiceBlockedRef.current = isServiceBlocked;
+  }, [isServiceBlocked]);
+
+  useEffect(() => {
+    hasAttemptedStartRef.current = hasAttemptedStart;
+  }, [hasAttemptedStart]);
+
+  useEffect(() => {
+    retryCountRef.current = retryCount;
+  }, [retryCount]);
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  useEffect(() => {
+    isStartingRef.current = isStarting;
+  }, [isStarting]);
 
   return {
     transcript,

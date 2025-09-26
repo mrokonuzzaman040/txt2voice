@@ -167,10 +167,10 @@ export function RealTimePanel() {
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3">
           <p className="text-sm font-medium text-amber-200 mb-2">Troubleshooting Tips:</p>
           <ul className="text-xs text-amber-300 space-y-1">
-            <li>• Ensure you're using Chrome, Edge, or Safari (Firefox doesn't support speech recognition)</li>
+            <li>• Ensure you&apos;re using Chrome, Edge, or Safari (Firefox doesn&apos;t support speech recognition)</li>
             <li>• Check if your firewall or antivirus is blocking the speech recognition service</li>
             <li>• Try disabling browser extensions that might interfere</li>
-            <li>• Make sure you're not in a private/incognito mode</li>
+            <li>• Make sure you&apos;re not in a private/incognito mode</li>
             <li>• Check if your organization has blocked speech recognition services</li>
           </ul>
         </div>
@@ -180,7 +180,7 @@ export function RealTimePanel() {
         <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
           <p className="text-sm font-medium text-blue-200 mb-2">Alternative Options:</p>
           <p className="text-xs text-blue-300 mb-3">
-            Since real-time speech recognition is blocked, you can use the "Recorded Audio" panel below to upload audio files for transcription.
+            Since real-time speech recognition is blocked, you can use the &quot;Recorded Audio&quot; panel below to upload audio files for transcription.
           </p>
           <div className="flex flex-wrap gap-2">
             <button
