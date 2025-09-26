@@ -87,7 +87,7 @@ export function RecordedPanel({
   };
 
   return (
-    <Card className="grid gap-6">
+    <Card className="grid gap-6" data-panel="recorded">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-white">Recorded audio</h2>
