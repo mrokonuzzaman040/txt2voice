@@ -99,7 +99,7 @@ export function useSpeechRecognition() {
       if (event.error === 'network') {
         if (retryCountRef.current < 2 && !isStartingRef.current) {
           const nextAttempt = retryCountRef.current + 1;
-          setError(`Speech service connection issue. Retrying... (${nextAttempt}/2)`);
+          setError(`Network connection issue. Retrying... (${nextAttempt}/2)`);
           setRetryCount((prev) => prev + 1);
           setIsStarting(true);
 
@@ -111,7 +111,7 @@ export function useSpeechRecognition() {
                 recognitionRef.current.start();
               } catch (err) {
                 console.error('Failed to restart recognition:', err);
-                setError('Unable to restart speech recognition. The service appears to be blocked.');
+                setError('Unable to restart speech recognition. Please check your internet connection and try again.');
                 setIsServiceBlocked(true);
                 setIsRecording(false);
                 setIsStarting(false);
@@ -122,7 +122,7 @@ export function useSpeechRecognition() {
           }, delay);
           return;
         } else {
-          setError('Speech recognition service is blocked or unavailable. This is likely due to network restrictions, firewall settings, or browser security policies.');
+          setError('Speech recognition requires an internet connection. Please check your network connection and try again.');
           setIsServiceBlocked(true);
           isServiceBlockedRef.current = true;
           shouldRunRef.current = false;

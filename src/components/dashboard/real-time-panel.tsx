@@ -70,7 +70,7 @@ export function RealTimePanel() {
       return;
     }
     if (!isOnline) {
-      setStatus('No internet connection. Please check your network and try again.');
+      setStatus('No internet connection. Speech recognition requires an internet connection to work.');
       return;
     }
     setStatus('Starting recording...');
@@ -135,7 +135,7 @@ export function RealTimePanel() {
         <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-3">
           <p className="text-sm text-rose-300">{error}</p>
           <div className="mt-2 flex flex-wrap gap-2">
-            {error.includes('Speech service connection issue') && (
+            {error.includes('Network connection issue') && (
               <button
                 onClick={handleStart}
                 className="text-xs text-rose-200 underline hover:text-rose-100"
@@ -143,7 +143,7 @@ export function RealTimePanel() {
                 Try again
               </button>
             )}
-            {error.includes('Speech recognition service is unavailable') && (
+            {error.includes('requires an internet connection') && (
               <>
                 <button
                   onClick={() => window.location.reload()}
@@ -158,6 +158,14 @@ export function RealTimePanel() {
                   Try again
                 </button>
               </>
+            )}
+            {error.includes('Unable to restart speech recognition') && (
+              <button
+                onClick={() => window.location.reload()}
+                className="text-xs text-rose-200 underline hover:text-rose-100"
+              >
+                Refresh page
+              </button>
             )}
           </div>
         </div>
