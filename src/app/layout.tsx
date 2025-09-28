@@ -19,9 +19,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Txt2Voice Platform',
+  title: 'Bengali Voice-to-Text Platform',
   description:
-    'Secure, real-time voice-to-text workspace for admins and creators powered by AI.',
+    'Secure, real-time Bengali voice-to-text workspace with AI-powered transcription for admins and creators.',
 };
 
 export default async function RootLayout({
@@ -32,7 +32,7 @@ export default async function RootLayout({
   const session = await getCurrentSession();
 
   return (
-    <html lang="en">
+    <html lang="bn">
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-[#0f1729] text-slate-100 antialiased`}
       >

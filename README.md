@@ -1,14 +1,17 @@
-# Txt2Voice Platform
+# Bengali Voice-to-Text Platform
 
-Txt2Voice is a secure voice-to-text workspace built with Next.js 15, React 19, NextAuth, Prisma, and PostgreSQL. It provides both real-time browser-based capture and recorded audio transcription powered by Gemini or OpenAI, with dedicated dashboards for end users and administrators.
+A secure Bengali voice-to-text workspace built with Next.js 15, React 19, NextAuth, Prisma, and PostgreSQL. Optimized for Bengali (Bangla) speech recognition with support for 40+ languages, providing both real-time browser-based capture and recorded audio transcription powered by Gemini or OpenAI, with dedicated dashboards for end users and administrators.
 
 ## Features
-- **Role-based access** with NextAuth credentials authentication and Prisma adapter.
-- **Real-time transcription** via the browser Speech Recognition API with server-side persistence.
-- **Recorded audio transcription** that uploads audio files and routes them to Gemini or OpenAI.
-- **Audit-ready history** stored in PostgreSQL, exposed via secure API routes and admin views.
-- **Admin console** with usage metrics, user insights, and transcript oversight.
-- **Tailwind CSS UI** focused on clarity, dark-theme aesthetics, and accessibility.
+- **Bengali-first design** with Bengali (Bangla) as the default language for speech recognition
+- **Multi-language support** for 40+ languages including Bengali, English, Hindi, Arabic, and more
+- **Role-based access** with NextAuth credentials authentication and Prisma adapter
+- **Real-time Bengali transcription** via the browser Speech Recognition API with server-side persistence
+- **Recorded audio transcription** that uploads audio files and routes them to Gemini or OpenAI
+- **Smart language detection** with automatic fallback to Bengali variants
+- **Audit-ready history** stored in PostgreSQL, exposed via secure API routes and admin views
+- **Admin console** with usage metrics, user insights, and transcript oversight
+- **Tailwind CSS UI** focused on clarity, dark-theme aesthetics, and accessibility
 
 ## Tech Stack
 - [Next.js 15 (App Router)](https://nextjs.org/)

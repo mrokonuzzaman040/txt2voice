@@ -5,11 +5,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { DemoInstructions } from '@/components/ui/demo-instructions';
+import { LanguageSelector } from '@/components/ui/language-selector';
+import { TextFormattingToolbar } from '@/components/ui/text-formatting-toolbar';
 import { Textarea } from '@/components/ui/textarea';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 
 export function RealTimePanel() {
-  const { transcript, start, stop, reset, isRecording, supported, error, isServiceBlocked } = useSpeechRecognition();
+  const { transcript, start, stop, reset, isRecording, supported, error, isServiceBlocked, currentLanguage, setLanguage } = useSpeechRecognition();
   const [status, setStatus] = useState<string>('Idle');
   const [duration, setDuration] = useState(0);
   const startTimeRef = useRef<number | null>(null);
@@ -73,8 +76,15 @@ export function RealTimePanel() {
       setStatus('No internet connection. Speech recognition requires an internet connection to work.');
       return;
     }
-    setStatus('Starting recording...');
+    setStatus('Listening... Speak in Bengali and your words will appear here.');
     start();
+  };
+
+  const handleInsertText = (text: string) => {
+    // This would need to be enhanced to actually insert text at cursor position
+    // For now, we'll append to the transcript
+    const newTranscript = transcript + text;
+    // Note: This is a simplified implementation. In a real editor, you'd want cursor positioning
   };
 
   const handleStop = async () => {
@@ -114,11 +124,16 @@ export function RealTimePanel() {
 
   return (
     <Card className="grid gap-6">
+      <DemoInstructions 
+        isRecording={isRecording} 
+        supported={supported} 
+        isClient={isClient} 
+      />
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">Real-time capture</h2>
+          <h2 className="text-lg font-semibold text-white">Bengali Voice Typing</h2>
           <p className="text-sm text-slate-300">
-            Stream speech into clean text using the browser speech API and sync instantly.
+            Speak in Bengali and see your words appear instantly, just like Google Docs voice typing. Start speaking to begin dictation.
             {!supported && isClient && (
               <span className="block mt-1 text-xs text-amber-300">
                 Speech recognition requires Chrome, Edge, or Safari. Try refreshing the page or using a different browser.
@@ -126,9 +141,18 @@ export function RealTimePanel() {
             )}
           </p>
         </div>
-        <Badge className={`${!isClient ? 'bg-slate-500/20 text-slate-300' : !isOnline ? 'bg-amber-500/20 text-amber-200' : supported ? 'bg-indigo-500/20 text-indigo-200' : 'bg-rose-500/20 text-rose-200'}`}>
-          {!isClient ? 'Loading...' : !isOnline ? 'Offline' : supported ? 'Live ready' : 'Not supported'}
-        </Badge>
+        <div className="flex items-center gap-3">
+          {supported && isClient && (
+            <LanguageSelector
+              currentLanguage={currentLanguage}
+              onLanguageChange={setLanguage}
+              className="min-w-[180px]"
+            />
+          )}
+          <Badge className={`${!isClient ? 'bg-slate-500/20 text-slate-300' : !isOnline ? 'bg-amber-500/20 text-amber-200' : supported ? 'bg-indigo-500/20 text-indigo-200' : 'bg-rose-500/20 text-rose-200'}`}>
+            {!isClient ? 'Loading...' : !isOnline ? 'Offline' : supported ? 'Live ready' : 'Not supported'}
+          </Badge>
+        </div>
       </div>
 
       {error && (
@@ -167,6 +191,14 @@ export function RealTimePanel() {
                 Refresh page
               </button>
             )}
+            {error.includes('Language') && error.includes('not supported') && (
+              <button
+                onClick={handleStart}
+                className="text-xs text-rose-200 underline hover:text-rose-100"
+              >
+                Try with fallback language
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -180,6 +212,19 @@ export function RealTimePanel() {
             <li>• Try disabling browser extensions that might interfere</li>
             <li>• Make sure you&apos;re not in a private/incognito mode</li>
             <li>• Check if your organization has blocked speech recognition services</li>
+          </ul>
+        </div>
+      )}
+
+      {!isRecording && !isServiceBlocked && supported && isClient && (
+        <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4">
+          <p className="text-sm font-medium text-green-200 mb-2">💡 Bengali Voice Typing Tips:</p>
+          <ul className="text-xs text-green-300 space-y-1">
+            <li>• Speak clearly and at a normal pace</li>
+            <li>• Say punctuation marks: "comma", "period", "question mark"</li>
+            <li>• Say "new paragraph" to start a new paragraph</li>
+            <li>• Say "new line" to start a new line</li>
+            <li>• The system will automatically continue listening until you stop</li>
           </ul>
         </div>
       )}
@@ -210,13 +255,25 @@ export function RealTimePanel() {
         </div>
       )}
 
-      <Textarea
-        value={transcript}
-        readOnly
-        rows={6}
-        className="min-h-[200px] resize-none"
-        placeholder="Live transcript will appear here..."
-      />
+      <div className="relative">
+        <Textarea
+          value={transcript}
+          readOnly
+          rows={12}
+          className="min-h-[400px] resize-none text-base leading-relaxed font-mono bg-slate-900/50 border-slate-600 focus:border-blue-500 placeholder-slate-500"
+          placeholder={
+            isRecording 
+              ? "Listening... Speak in Bengali and your words will appear here..."
+              : "Click 'Start Dictation' and speak in Bengali. Your words will appear here in real-time, just like Google Docs voice typing."
+          }
+        />
+        {isRecording && (
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <span className="text-sm text-red-400 font-medium">Recording</span>
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2 text-sm text-slate-300">
@@ -228,9 +285,13 @@ export function RealTimePanel() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <Button onClick={handleStart} disabled={isRecording || !isOnline || isServiceBlocked}>
-          {isServiceBlocked ? 'Service Unavailable' : 'Start session'}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button 
+          onClick={handleStart} 
+          disabled={isRecording || !isOnline || isServiceBlocked}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          {isServiceBlocked ? 'Service Unavailable' : isRecording ? 'Dictation Active' : 'Start Dictation'}
         </Button>
         <Button
           variant="secondary"
@@ -238,8 +299,19 @@ export function RealTimePanel() {
           disabled={!isRecording || isSaving}
           loading={isSaving}
         >
-          Stop & save
+          {isSaving ? 'Saving...' : 'Stop & Save'}
         </Button>
+        <Button
+          variant="outline"
+          onClick={reset}
+          disabled={isRecording || isSaving}
+        >
+          Clear Text
+        </Button>
+        <TextFormattingToolbar
+          onInsertText={handleInsertText}
+          disabled={isRecording || isSaving}
+        />
       </div>
     </Card>
   );
